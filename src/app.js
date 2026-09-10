@@ -1,0 +1,147 @@
+/* Ana dongu. Sensorlerden gelen veriyi tek bir durum nesnesinde toplar,
+   ekrani sabit hizda tazeler. Cizim ve veri ayri tutuluyor:
+   sensor olaylari sadece durumu gunceller, ciziME karar veren tek yer render(). */
+
+import { distance, bearing, cardinal, fmtDist, norm } from './geo.js';
+import { startGPS, startCompass, startSim } from './sensors.js';
+import { drawMap, drawStrip } from './minimap.js';
+
+const RANGES = [50, 100, 250, 500, 1000];   // minimap menzil kademeleri, metre
+const TRAIL_MAX = 300;                       // izde tutulan nokta sayisi
+const TRAIL_MIN_M = 3;                       // bu mesafeden yakin noktalar ize eklenmez
+
+const st = {
+  pos: null, acc: null, alt: null, spd: 0,
+  heading: null, hsrc: '---',
+  trail: [], waypoint: null, trip: 0,
+  range: 100, sim: false, fix: false
+};
+
+const $ = id => document.getElementById(id);
+const els = {
+  gate: $('gate'), hud: $('hud'), err: $('gate-err'),
+  map: $('map'), strip: $('strip')
+};
+
+/* --- Sensor girisleri --- */
+
+function onFix(f) {
+  const p = { lat: f.lat, lon: f.lon };
+
+  if (st.pos) {
+    const d = distance(st.pos, p);
+    // 0.5 m alti hareketi yok sayiyoruz: GPS duruyorken bile birkac metre
+    // ziplar, bunu ize ve toplam mesafeye yazarsak sen hic yurumeden km birikir.
+    if (d > 0.5) st.trip += d;
+    if (d > TRAIL_MIN_M) pushTrail(p);
+  } else {
+    pushTrail(p);
+  }
+
+  st.pos = p;
+  st.acc = f.acc;
+  st.alt = f.alt;
+  st.spd = (f.spd != null && f.spd >= 0) ? f.spd : 0;
+  st.fix = true;
+
+  // Pusula yoksa hareket yonunu kullan: dururken ise yaramaz ama
+  // yururken makul bir yon verir.
+  if (st.heading === null && f.gpsHdg != null && !isNaN(f.gpsHdg)) {
+    st.heading = norm(f.gpsHdg);
+    st.hsrc = 'GPS';
+  }
+}
+
+function pushTrail(p) {
+  st.trail.push(p);
+  if (st.trail.length > TRAIL_MAX) st.trail.shift();
+}
+
+function onHeading(h, src) {
+  // Yumusatma: ham manyetometre titriyor, HUD'da harita zipliyor.
+  // Kisa yoldan aci ortalamasi aliyoruz ki 359 -> 1 gecisi geriye donmesin.
+  if (st.heading === null) { st.heading = h; }
+  else {
+    let d = ((h - st.heading + 540) % 360) - 180;
+    st.heading = norm(st.heading + d * 0.25);
+  }
+  st.hsrc = src;
+}
+
+/* --- Ekran --- */
+
+function render() {
+  const t = (id, v) => { const e = $(id); if (e.textContent !== v) e.textContent = v; };
+
+  t('v-fix', st.sim ? 'SIM' : (st.fix ? 'KILIT' : 'ARANIYOR'));
+  $('v-fix').style.color = st.fix || st.sim ? 'var(--ok)' : 'var(--am)';
+
+  t('v-hdg', st.heading == null ? '---' :
+      String(Math.round(st.heading)).padStart(3, '0') + '° ' + cardinal(st.heading));
+  t('v-src', st.hsrc);
+
+  t('v-lat', st.pos ? st.pos.lat.toFixed(5) : '--.-----');
+  t('v-lon', st.pos ? st.pos.lon.toFixed(5) : '--.-----');
+  t('v-acc', st.acc == null ? '--- m' : Math.round(st.acc) + ' m');
+  t('v-alt', st.alt == null ? '--- m' : Math.round(st.alt) + ' m');
+  t('v-spd', (st.spd * 3.6).toFixed(1));
+  t('v-trip', fmtDist(st.trip));
+  t('v-scale', st.range + ' m');
+
+  // Hedef paneli
+  const box = $('wp-box');
+  if (st.waypoint && st.pos) {
+    const d = distance(st.pos, st.waypoint);
+    const b = bearing(st.pos, st.waypoint);
+    // Bagil aci: hedefin sana gore nerede oldugu. Duz yon degil, bu okunur.
+    const rel = st.heading == null ? null : norm(b - st.heading);
+    t('v-wpd', fmtDist(d));
+    t('v-wpb', rel == null ? String(Math.round(b)).padStart(3, '0') + '°'
+      : (rel > 180 ? '◀ ' + Math.round(360 - rel) : Math.round(rel) + ' ▶') + '°');
+    box.classList.add('on');
+  } else {
+    box.classList.remove('on');
+  }
+
+  drawMap(els.map, st);
+  drawStrip(els.strip, st.heading);
+  requestAnimationFrame(render);
+}
+
+/* --- Kontroller --- */
+
+$('b-mark').onclick = () => { if (st.pos) st.waypoint = { ...st.pos }; };
+$('b-clear').onclick = () => { st.waypoint = null; st.trail = []; st.trip = 0; };
+$('b-zoom').onclick = () => {
+  st.range = RANGES[(RANGES.indexOf(st.range) + 1) % RANGES.length];
+};
+
+/* --- Baslatma --- */
+
+function enter() {
+  els.gate.hidden = true;
+  els.hud.hidden = false;
+  requestAnimationFrame(render);
+}
+
+$('gate-connect').onclick = async () => {
+  els.err.textContent = '';
+  const fail = m => { els.err.textContent = m; };
+
+  startGPS(onFix, fail);
+  await startCompass(onHeading, m => {
+    // Pusula yoksa olumcul degil: GPS yonune duseriz, uyari yeter.
+    els.err.textContent = m + ' GPS hareket yonu kullanilacak.';
+  });
+  enter();
+};
+
+$('gate-sim').onclick = () => {
+  st.sim = true;
+  startSim(onFix, onHeading);
+  enter();
+};
+
+// Ekran donduruldugunde canvas olculeri degisir; yeniden cizim zaten
+// her karede oluyor, sadece boyut onbellegini bozmak yeterli.
+window.addEventListener('resize', () => { els.map.width = 0; els.strip.width = 0; });
