@@ -1,2 +1,8 @@
 .cert/
 __pycache__/
+
+# İç dosyalar — public depoya girmez (2026-09-11, Baran'ın talimatı)
+CLAUDE.md
+AGENTS.md
+backlog.md
+reports/
