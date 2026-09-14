@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#000000">
 <title>PILOT HUD</title>
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="style.css?v=2">
 </head>
 <body>
 
@@ -89,6 +89,26 @@
   <div class="scan"></div>
 </main>
 
-<script type="module" src="src/app.js"></script>
+<script>
+  (function() {
+    var errBox = document.getElementById('gate-err');
+    function logErr(msg) {
+      if (errBox) errBox.textContent = msg;
+    }
+    window.addEventListener('error', function(e) {
+      var loc = e.filename ? e.filename.split('/').pop() + ':' + e.lineno : '';
+      logErr(e.message + ' ' + loc);
+    });
+    window.addEventListener('unhandledrejection', function(e) {
+      logErr(e.reason ? (e.reason.message || e.reason) : 'Promise hatasi');
+    });
+    setTimeout(function() {
+      if (!window.__hudReady) {
+        logErr('Uygulama kodu yuklenemedi');
+      }
+    }, 3000);
+  })();
+</script>
+<script type="module" src="src/app.js?v=2"></script>
 </body>
 </html>

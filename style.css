@@ -32,7 +32,7 @@ html, body {
 
 /* ---------- Giris ekrani ---------- */
 #gate {
-  position: fixed; inset: 0;
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   display: grid; place-items: center;
   padding: 24px;
   background: radial-gradient(circle at 50% 45%, #06181c 0%, #000 70%);
@@ -59,7 +59,7 @@ html, body {
 .btn-sm { width: auto; margin: 0; padding: 9px 12px; font-size: 10px; }
 
 /* ---------- HUD yerlesimi ---------- */
-#hud { position: fixed; inset: 0; }
+#hud { position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
 
 .panel {
   position: absolute;
@@ -133,7 +133,7 @@ html, body {
 
 /* ---------- Tarama cizgileri ---------- */
 .scan {
-  position: absolute; inset: 0; pointer-events: none;
+  position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;
   background: repeating-linear-gradient(
     to bottom, #4de2f00a 0px, #4de2f00a 1px, transparent 1px, transparent 3px);
 }

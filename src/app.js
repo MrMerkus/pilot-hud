@@ -150,3 +150,4 @@ $('gate-sim').onclick = () => {
 // Ekran donduruldugunde canvas olculeri degisir; yeniden cizim zaten
 // her karede oluyor, sadece boyut onbellegini bozmak yeterli.
 window.addEventListener('resize', () => { els.map.width = 0; els.strip.width = 0; });
+window.__hudReady = true;

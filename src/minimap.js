@@ -19,7 +19,7 @@ export function drawMap(cv, st) {
 
   const cx = size / 2, cy = size / 2, R = size / 2 - 2;
   const ppm = R / st.range;              // piksel / metre
-  const hdg = st.heading ?? 0;
+  const hdg = st.heading !== null ? st.heading : 0;
 
   // Dis cerceve
   g.strokeStyle = '#4de2f055'; g.lineWidth = 1;
@@ -112,7 +112,7 @@ export function drawStrip(cv, heading) {
     g.stroke();
 
     if (major) {
-      const lbl = { 0: 'K', 90: 'D', 180: 'G', 270: 'B' }[na] ?? String(na);
+      const lbl = { 0: 'K', 90: 'D', 180: 'G', 270: 'B' }[na] || String(na);
       g.fillStyle = lbl.length === 1 ? '#ffa02b' : '#4de2f0cc';
       g.fillText(lbl, x, 14);
     }
