@@ -10,6 +10,7 @@ import { initBasemap, updateBasemap, getBuildingFeatures } from './basemap.js';
 import { cameraPose, smoothAngle } from './aim.js';
 import { destination, pickTarget } from './geoaim.js';
 import { projectTarget } from './screenproj.js';
+import { poseFromQuaternion } from './orient.js';
 
 /* --- Servis calisani ve kalici depolama --- */
 try {
@@ -38,6 +39,7 @@ const st = {
 };
 
 let gotAbsPose = false;
+let fusionActive = false;
 
 const $ = id => document.getElementById(id);
 const els = {
@@ -119,7 +121,7 @@ function onFix(f) {
 
   // Pusula yoksa hareket yonunu kullan: dururken ise yaramaz ama
   // yururken makul bir yon verir.
-  if (st.heading === null && f.gpsHdg != null && !isNaN(f.gpsHdg)) {
+  if (!fusionActive && st.heading === null && f.gpsHdg != null && !isNaN(f.gpsHdg)) {
     st.heading = norm(f.gpsHdg);
     st.hsrc = 'GPS';
   }
@@ -131,6 +133,7 @@ function pushTrail(p) {
 }
 
 function onHeading(h, src) {
+  if (fusionActive) return;
   // Yumusatma: ham manyetometre titriyor, HUD'da harita zipliyor.
   // Kisa yoldan aci ortalamasi aliyoruz ki 359 -> 1 gecisi geriye donmesin.
   if (st.heading === null) { st.heading = h; }
@@ -149,6 +152,7 @@ function onHeading(h, src) {
 
 function onPose(ev) {
   if (st.sim) return;
+  if (fusionActive) return;
   const angle = (screen.orientation && typeof screen.orientation.angle === 'number')
     ? screen.orientation.angle
     : (window.orientation || 0);
@@ -417,6 +421,50 @@ $('gate-connect').onclick = async () => {
   initDisplay();
   els.err.textContent = '';
   const fail = m => { els.err.textContent = m; };
+
+  if (typeof window !== 'undefined' && window.AbsoluteOrientationSensor) {
+    try {
+      if (navigator.permissions && typeof navigator.permissions.query === 'function') {
+        navigator.permissions.query({ name: 'accelerometer' }).catch(() => {});
+        navigator.permissions.query({ name: 'gyroscope' }).catch(() => {});
+        navigator.permissions.query({ name: 'magnetometer' }).catch(() => {});
+      }
+    } catch (e) {}
+
+    try {
+      const s = new AbsoluteOrientationSensor({ frequency: 30, referenceFrame: 'device' });
+      const onReading = () => {
+        if (!s.quaternion) return;
+        const p = poseFromQuaternion(s.quaternion);
+        if (p.heading !== null) {
+          if (st.pose.heading === null) {
+            st.pose.heading = p.heading;
+          } else {
+            st.pose.heading = smoothAngle(st.pose.heading, p.heading, 0.25);
+          }
+        }
+        if (typeof p.pitch === 'number' && !isNaN(p.pitch)) {
+          if (st.pose.pitch === null || isNaN(st.pose.pitch)) {
+            st.pose.pitch = p.pitch;
+          } else {
+            st.pose.pitch = st.pose.pitch + (p.pitch - st.pose.pitch) * 0.25;
+          }
+        }
+        st.heading = st.pose.heading;
+        st.hsrc = 'FUS';
+        fusionActive = true;
+      };
+      s.onreading = onReading;
+      s.addEventListener('reading', onReading);
+      s.onerror = () => {
+        fusionActive = false;
+      };
+      s.addEventListener('error', () => {
+        fusionActive = false;
+      });
+      s.start();
+    } catch (e) {}
+  }
 
   try {
     await startCompass(onHeading, m => {

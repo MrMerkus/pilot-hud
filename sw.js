@@ -1,7 +1,7 @@
 // Pilot HUD - Service Worker
 // ASCII-only Turkce aciklamalar, nullish coalescing operatoru yok
 
-var CACHE_NAME = 'pilot-shell-v6';
+var CACHE_NAME = 'pilot-shell-v7';
 
 var SHELL_FILES = [
   './',
@@ -14,6 +14,7 @@ var SHELL_FILES = [
   'src/geo.js',
   'src/geoaim.js',
   'src/minimap.js',
+  'src/orient.js',
   'src/screenproj.js',
   'src/sensors.js',
   'vendor/maplibre-gl.js',
