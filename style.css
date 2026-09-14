@@ -20,7 +20,8 @@
 [hidden] { display: none !important; }
 
 html, body {
-  height: 100%;
+  height: 100vh;
+  height: 100dvh;
   background: var(--bg);
   color: var(--cy);
   font-family: var(--mono);
@@ -32,115 +33,444 @@ html, body {
 
 /* ---------- Giris ekrani ---------- */
 #gate {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  display: grid; place-items: center;
-  padding: 24px;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: calc(20px + env(safe-area-inset-top, 0px))
+           calc(20px + env(safe-area-inset-right, 0px))
+           calc(20px + env(safe-area-inset-bottom, 0px))
+           calc(20px + env(safe-area-inset-left, 0px));
   background: radial-gradient(circle at 50% 45%, #06181c 0%, #000 70%);
   z-index: 50;
+  overflow-y: auto;
 }
-.gate-box { max-width: 340px; text-align: center; }
-.gate-title { font-size: 28px; letter-spacing: .32em; margin-bottom: 4px; }
-.gate-sub { font-size: 11px; letter-spacing: .28em; color: var(--cy-dim); margin-bottom: 22px; }
-.gate-text { font-size: 12px; line-height: 1.7; color: var(--cy-dim); margin-bottom: 22px; }
-.gate-err { margin-top: 16px; font-size: 11px; color: var(--bad); line-height: 1.6; min-height: 1em; }
+.gate-box {
+  width: 100%;
+  max-width: clamp(280px, 85vw, 360px);
+  text-align: center;
+}
+.gate-title {
+  font-size: clamp(22px, 5.5vmin, 32px);
+  letter-spacing: .32em;
+  margin-bottom: 4px;
+}
+.gate-sub {
+  font-size: clamp(9px, 2vmin, 12px);
+  letter-spacing: .28em;
+  color: var(--cy-dim);
+  margin-bottom: clamp(14px, 3vh, 22px);
+}
+.gate-text {
+  font-size: clamp(11px, 2.2vmin, 13px);
+  line-height: 1.65;
+  color: var(--cy-dim);
+  margin-bottom: clamp(14px, 3vh, 22px);
+}
+.gate-err {
+  margin-top: 14px;
+  font-size: 11px;
+  color: var(--bad);
+  line-height: 1.6;
+  min-height: 1em;
+}
 
+/* ---------- Dugmeler ve dokunma hedefleri ---------- */
 .btn {
-  display: block; width: 100%;
-  margin: 8px 0; padding: 13px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  width: 100%;
+  margin: 8px 0;
+  padding: 12px 16px;
   background: transparent;
   border: 1px solid var(--cy-dim);
   color: var(--cy);
   font-family: var(--mono);
-  font-size: 12px; letter-spacing: .2em;
+  font-size: clamp(11px, 2vmin, 13px);
+  letter-spacing: .2em;
   cursor: pointer;
+  touch-action: manipulation;
+  -webkit-user-select: none;
+  user-select: none;
 }
 .btn:active { background: var(--cy-faint); }
-.btn-primary { border-color: var(--cy); box-shadow: 0 0 14px #4de2f033 inset; }
-.btn-sm { width: auto; margin: 0; padding: 9px 12px; font-size: 10px; }
+.btn-primary,
+#b-cam.on {
+  border-color: var(--cy);
+  box-shadow: 0 0 14px #4de2f033 inset;
+}
+.btn-sm {
+  width: auto;
+  margin: 0;
+  min-height: 44px;
+  padding: 9px 12px;
+  font-size: clamp(9px, 1.8vmin, 11px);
+}
 
-/* ---------- HUD yerlesimi ---------- */
-#hud { position: fixed; top: 0; left: 0; right: 0; bottom: 0; }
+/* ---------- HUD ana cerceve ---------- */
+#hud {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100vh;
+  height: 100dvh;
+}
 
+/* HUD elemanlari kamera videosunun ustunde yer alir */
+#hud > * {
+  z-index: 1;
+}
+
+/* Kamera arka plan katmani: her seyin arkasinda tam ekran */
+.cam,
+#cam {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  display: none;
+  pointer-events: none;
+}
+
+/* ---------- Genel panel stili ---------- */
 .panel {
   position: absolute;
-  padding: 9px 11px;
+  padding: clamp(6px, 1.2vh, 10px) clamp(8px, 1.5vw, 12px);
   border: 1px solid var(--cy-faint);
   background: #00000055;
-  min-width: 128px;
+  min-width: clamp(110px, 15vw, 150px);
+  z-index: 2;
 }
-/* kose parantezleri: Cooper HUD'inin kosegen cerceve dili */
+/* Kose parantezleri: Cooper HUD kosegen cerceve dili */
 .panel::before, .panel::after {
-  content: ""; position: absolute; width: 9px; height: 9px;
-  border: 1px solid var(--cy); border-width: 0;
+  content: "";
+  position: absolute;
+  width: clamp(7px, 1.2vmin, 9px);
+  height: clamp(7px, 1.2vmin, 9px);
+  border: 1px solid var(--cy);
+  border-width: 0;
 }
 .panel::before { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
 .panel::after  { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
 
-.p-tl { top: 62px; left: 12px; }
-.p-bl { bottom: 74px; left: 12px; }
-.p-br { bottom: 74px; right: 12px; text-align: right; }
+/* Varsayilan panel konumlari */
+.p-tl {
+  top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
+  left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
+}
+.p-bl {
+  bottom: calc(clamp(8px, 2.5vh, 16px) + env(safe-area-inset-bottom, 0px));
+  left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
+}
+.p-br {
+  bottom: calc(clamp(8px, 2.5vh, 16px) + env(safe-area-inset-bottom, 0px));
+  right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
+  text-align: right;
+}
 
-.p-head { font-size: 9px; letter-spacing: .26em; color: var(--cy-dim); margin-bottom: 6px; }
-.row { display: flex; justify-content: space-between; gap: 14px; font-size: 11px; line-height: 1.65; }
+.p-head {
+  font-size: clamp(8px, 1.8vh, 10px);
+  letter-spacing: .26em;
+  color: var(--cy-dim);
+  margin-bottom: clamp(3px, 0.8vh, 6px);
+}
+.row {
+  display: flex;
+  justify-content: space-between;
+  gap: clamp(8px, 1.5vw, 14px);
+  font-size: clamp(10px, 2.2vh, 12px);
+  line-height: 1.45;
+}
 .k { color: var(--cy-dim); }
 .v { font-variant-numeric: tabular-nums; }
-.big { font-size: 30px; line-height: 1; font-variant-numeric: tabular-nums; }
-.unit { font-size: 9px; letter-spacing: .2em; color: var(--cy-dim); margin-bottom: 6px; }
+.big {
+  font-size: clamp(20px, 5vh, 32px);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.unit {
+  font-size: clamp(8px, 1.8vh, 10px);
+  letter-spacing: .2em;
+  color: var(--cy-dim);
+  margin-bottom: clamp(3px, 0.8vh, 6px);
+}
 
 /* ---------- Pusula seridi ---------- */
-.strip-wrap { position: absolute; top: 0; left: 0; right: 0; height: 50px; }
-.strip { width: 100%; height: 50px; display: block; }
+.strip-wrap {
+  position: absolute;
+  top: env(safe-area-inset-top, 0px);
+  left: 0; right: 0;
+  height: clamp(36px, 11vh, 52px);
+  z-index: 3;
+}
+#strip, .strip {
+  width: 100%;
+  height: clamp(36px, 11vh, 52px);
+  display: block;
+}
 .strip-mark {
-  position: absolute; top: 34px; left: 50%; transform: translateX(-50%);
-  width: 0; height: 0;
-  border-left: 6px solid transparent; border-right: 6px solid transparent;
+  position: absolute;
+  bottom: clamp(4px, 1vh, 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
   border-bottom: 8px solid var(--am);
 }
 
 /* ---------- Nisangah ---------- */
-.reticle { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.r-line { position: absolute; top: 50%; width: 16px; height: 1px; background: var(--cy-dim); }
-.r-l { right: 12px; } .r-r { left: 12px; }
+.reticle {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 1;
+}
+.r-line {
+  position: absolute;
+  top: 50%;
+  width: clamp(12px, 2.5vw, 20px);
+  height: 1px;
+  background: var(--cy-dim);
+}
+.r-l { right: clamp(10px, 1.8vw, 16px); }
+.r-r { left: clamp(10px, 1.8vw, 16px); }
 .r-dot {
-  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-  width: 4px; height: 4px; border: 1px solid var(--cy); border-radius: 50%;
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: clamp(3px, 0.8vmin, 5px);
+  height: clamp(3px, 0.8vmin, 5px);
+  border: 1px solid var(--cy);
+  border-radius: 50%;
 }
 
-/* ---------- Minimap ---------- */
-.map-wrap { position: absolute; top: 62px; right: 12px; }
-.map { width: 148px; height: 148px; display: block; }
+/* ---------- Minimap harita ---------- */
+.map-wrap {
+  position: absolute;
+  top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
+  right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
+  z-index: 2;
+}
+#map, .map {
+  width: clamp(100px, 38vh, 260px);
+  height: clamp(100px, 38vh, 260px);
+  display: block;
+}
 .map-scale {
-  text-align: center; font-size: 9px; letter-spacing: .18em;
-  color: var(--cy-dim); margin-top: 2px;
+  text-align: center;
+  font-size: clamp(8px, 1.8vh, 10px);
+  letter-spacing: .18em;
+  color: var(--cy-dim);
+  margin-top: clamp(2px, 0.5vh, 4px);
 }
 
-/* ---------- Hedef ---------- */
+/* ---------- Hedef gostergesi ---------- */
 .wp {
-  position: absolute; bottom: 74px; left: 50%; transform: translateX(-50%);
-  text-align: center; color: var(--am); opacity: 0; transition: opacity .25s;
+  position: absolute;
+  bottom: calc(clamp(54px, 14.5vh, 72px) + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  color: var(--am);
+  opacity: 0;
+  transition: opacity .25s;
+  pointer-events: none;
+  z-index: 2;
 }
 .wp.on { opacity: 1; }
-.wp-head { font-size: 9px; letter-spacing: .26em; opacity: .7; }
-.wp-body { display: flex; gap: 14px; align-items: baseline; }
-.wp-dist { font-size: 22px; font-variant-numeric: tabular-nums; }
-.wp-brg { font-size: 12px; opacity: .75; }
+.wp-head {
+  font-size: clamp(8px, 1.8vh, 10px);
+  letter-spacing: .26em;
+  opacity: .7;
+}
+.wp-body {
+  display: flex;
+  gap: clamp(8px, 1.5vw, 14px);
+  align-items: baseline;
+  justify-content: center;
+}
+.wp-dist {
+  font-size: clamp(18px, 4.5vh, 26px);
+  font-variant-numeric: tabular-nums;
+}
+.wp-brg {
+  font-size: clamp(10px, 2.2vh, 13px);
+  opacity: .75;
+}
 
-/* ---------- Kontroller ---------- */
+/* ---------- Alt kontroller ---------- */
 .ctrl {
-  position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
-  display: flex; gap: 8px;
+  position: absolute;
+  bottom: calc(clamp(8px, 2.2vh, 16px) + env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: clamp(6px, 1vw, 10px);
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+}
+.ctrl .btn {
+  min-height: clamp(46px, 8vh, 54px);
+  padding: clamp(10px, 1.8vh, 14px) clamp(12px, 1.8vw, 18px);
+  font-size: clamp(10px, 1.8vmin, 12px);
+  letter-spacing: .15em;
+  white-space: nowrap;
 }
 
 /* ---------- Tarama cizgileri ---------- */
 .scan {
-  position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none;
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  pointer-events: none;
+  z-index: 4;
   background: repeating-linear-gradient(
     to bottom, #4de2f00a 0px, #4de2f00a 1px, transparent 1px, transparent 3px);
 }
 
-/* Dar ekranda paneller kucultulur */
-@media (max-width: 380px) {
-  .panel { min-width: 108px; padding: 7px 9px; }
-  .map { width: 120px; height: 120px; }
-  .big { font-size: 24px; }
+/* ---------- Kamera modu acik ---------- */
+body.cam-on .cam,
+body.cam-on #cam {
+  display: block;
+}
+body.cam-on .panel {
+  background: rgba(0, 0, 0, 0.45);
+}
+body.cam-on #hud,
+body.cam-on .panel,
+body.cam-on .wp,
+body.cam-on .ctrl .btn,
+body.cam-on .map-scale {
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
+}
+body.cam-on .scan {
+  opacity: 0.35;
+}
+
+/* ==========================================================================
+   YATAY YERLESIM (LANDSCAPE) - Birincil kask gorunumu
+   ========================================================================== */
+@media (orientation: landscape) {
+  /* Sol sutun: SYS ustte, POS altta - carpmayi engelleyen vh sinirlari */
+  .p-tl {
+    top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
+    left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
+    width: clamp(116px, 17vw, 150px);
+    max-height: 38vh;
+    overflow: hidden;
+  }
+  .p-bl {
+    bottom: calc(clamp(8px, 2.5vh, 16px) + env(safe-area-inset-bottom, 0px));
+    left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
+    width: clamp(116px, 17vw, 150px);
+    max-height: 40vh;
+    overflow: hidden;
+  }
+
+  /* Sag taraf: Minimap sag ustte, VEL sag altta - carpmayi engelleyen vh sinirlari */
+  .map-wrap {
+    top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
+    right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
+  }
+  #map, .map {
+    width: clamp(100px, 38vh, 260px);
+    height: clamp(100px, 38vh, 260px);
+  }
+  .p-br {
+    bottom: calc(clamp(8px, 2.5vh, 16px) + env(safe-area-inset-bottom, 0px));
+    right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
+    width: clamp(108px, 16vw, 150px);
+    max-height: 42vh;
+    overflow: hidden;
+    text-align: right;
+  }
+
+  /* Alt orta: Hedef paneli ve kontroller */
+  .wp {
+    bottom: calc(clamp(54px, 14.5vh, 72px) + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .ctrl {
+    bottom: calc(clamp(8px, 2.2vh, 16px) + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    gap: clamp(6px, 1vw, 10px);
+  }
+  .ctrl .btn {
+    min-height: clamp(46px, 8vh, 54px);
+    padding: clamp(10px, 1.8vh, 14px) clamp(12px, 1.8vw, 18px);
+    font-size: clamp(10px, 1.8vmin, 12px);
+  }
+}
+
+/* ==========================================================================
+   DIKEY YERLESIM (PORTRAIT) - Telefon dik tutuldugunda calisan mod
+   ========================================================================== */
+@media (orientation: portrait) {
+  .strip-wrap {
+    height: clamp(40px, 7vh, 52px);
+  }
+  #strip, .strip {
+    height: clamp(40px, 7vh, 52px);
+  }
+
+  .p-tl {
+    top: calc(clamp(48px, 8vh, 64px) + env(safe-area-inset-top, 0px));
+    left: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-left, 0px));
+    width: clamp(110px, 34vw, 145px);
+    max-height: none;
+  }
+  .map-wrap {
+    top: calc(clamp(48px, 8vh, 64px) + env(safe-area-inset-top, 0px));
+    right: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-right, 0px));
+  }
+  #map, .map {
+    width: clamp(110px, 32vw, 150px);
+    height: clamp(110px, 32vw, 150px);
+  }
+
+  .p-bl {
+    bottom: calc(clamp(116px, 17vh, 130px) + env(safe-area-inset-bottom, 0px));
+    left: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-left, 0px));
+    width: clamp(110px, 34vw, 145px);
+    max-height: none;
+  }
+  .p-br {
+    bottom: calc(clamp(116px, 17vh, 130px) + env(safe-area-inset-bottom, 0px));
+    right: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-right, 0px));
+    width: clamp(100px, 30vw, 135px);
+    max-height: none;
+    text-align: right;
+  }
+
+  .wp {
+    bottom: calc(clamp(118px, 17.5vh, 132px) + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .ctrl {
+    bottom: calc(clamp(12px, 2vh, 20px) + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    transform: translateX(-50%);
+    gap: clamp(4px, 1.5vw, 8px);
+    max-width: calc(100vw - 16px);
+    flex-wrap: wrap;
+  }
+  .ctrl .btn {
+    min-height: 44px;
+    padding: 8px clamp(6px, 1.8vw, 10px);
+    font-size: clamp(9px, 2.4vw, 11px);
+  }
 }

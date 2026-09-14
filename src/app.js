@@ -5,6 +5,7 @@
 import { distance, bearing, cardinal, fmtDist, norm } from './geo.js';
 import { startGPS, startCompass, startSim } from './sensors.js';
 import { drawMap, drawStrip } from './minimap.js';
+import { startCamera, stopCamera } from './camera.js';
 
 const RANGES = [50, 100, 250, 500, 1000];   // minimap menzil kademeleri, metre
 const TRAIL_MAX = 300;                       // izde tutulan nokta sayisi
@@ -20,8 +21,55 @@ const st = {
 const $ = id => document.getElementById(id);
 const els = {
   gate: $('gate'), hud: $('hud'), err: $('gate-err'),
-  map: $('map'), strip: $('strip')
+  map: $('map'), strip: $('strip'),
+  cam: $('cam'), bCam: $('b-cam')
 };
+
+/* --- Ekran kip ve kilitleri --- */
+
+let wakeLock = null;
+let keepAwake = false;
+
+function requestFullscreen() {
+  const el = document.documentElement;
+  const req = el.requestFullscreen || el.webkitRequestFullscreen;
+  if (req) {
+    try {
+      const p = req.call(el);
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    } catch (e) {}
+  }
+}
+
+function lockLandscape() {
+  try {
+    if (screen.orientation && typeof screen.orientation.lock === 'function') {
+      const p = screen.orientation.lock('landscape');
+      if (p && typeof p.catch === 'function') p.catch(() => {});
+    }
+  } catch (e) {}
+}
+
+async function requestWakeLock() {
+  try {
+    if ('wakeLock' in navigator && navigator.wakeLock && typeof navigator.wakeLock.request === 'function') {
+      wakeLock = await navigator.wakeLock.request('screen');
+    }
+  } catch (e) {}
+}
+
+function initDisplay() {
+  keepAwake = true;
+  requestFullscreen();
+  lockLandscape();
+  requestWakeLock();
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (keepAwake && document.visibilityState === 'visible') {
+    requestWakeLock();
+  }
+});
 
 /* --- Sensor girisleri --- */
 
@@ -116,6 +164,53 @@ $('b-zoom').onclick = () => {
   st.range = RANGES[(RANGES.indexOf(st.range) + 1) % RANGES.length];
 };
 
+/* --- Kamera kontrolleri --- */
+
+let camOn = false;
+let camBusy = false;
+let camErrTimer = null;
+
+function showCamError(msg) {
+  els.err.textContent = msg;
+  els.bCam.textContent = 'KAMERA YOK';
+  if (camErrTimer) clearTimeout(camErrTimer);
+  camErrTimer = setTimeout(() => {
+    if (!camOn) els.bCam.textContent = 'KAMERA';
+  }, 2000);
+}
+
+els.bCam.onclick = async () => {
+  if (camBusy) return;
+  camBusy = true;
+
+  if (camOn) {
+    stopCamera(els.cam);
+    camOn = false;
+    document.body.classList.remove('cam-on');
+    els.bCam.classList.remove('on');
+    els.bCam.textContent = 'KAMERA';
+    camBusy = false;
+    return;
+  }
+
+  try {
+    await startCamera(els.cam);
+    camOn = true;
+    document.body.classList.add('cam-on');
+    els.bCam.classList.add('on');
+    els.bCam.textContent = 'KAMERA';
+  } catch (e) {
+    camOn = false;
+    stopCamera(els.cam);
+    document.body.classList.remove('cam-on');
+    els.bCam.classList.remove('on');
+    const msg = e.message || String(e);
+    showCamError(msg);
+  } finally {
+    camBusy = false;
+  }
+};
+
 /* --- Baslatma --- */
 
 function enter() {
@@ -125,6 +220,7 @@ function enter() {
 }
 
 $('gate-connect').onclick = async () => {
+  initDisplay();
   els.err.textContent = '';
   const fail = m => { els.err.textContent = m; };
 
@@ -142,6 +238,7 @@ $('gate-connect').onclick = async () => {
 };
 
 $('gate-sim').onclick = () => {
+  initDisplay();
   st.sim = true;
   startSim(onFix, onHeading);
   enter();
@@ -149,5 +246,10 @@ $('gate-sim').onclick = () => {
 
 // Ekran donduruldugunde canvas olculeri degisir; yeniden cizim zaten
 // her karede oluyor, sadece boyut onbellegini bozmak yeterli.
-window.addEventListener('resize', () => { els.map.width = 0; els.strip.width = 0; });
+function onResize() {
+  els.map.width = 0;
+  els.strip.width = 0;
+}
+window.addEventListener('resize', onResize);
+window.addEventListener('orientationchange', onResize);
 window.__hudReady = true;

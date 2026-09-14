@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="theme-color" content="#000000">
 <title>PILOT HUD</title>
-<link rel="stylesheet" href="style.css?v=2">
+<link rel="stylesheet" href="style.css?v=3">
 </head>
 <body>
 
@@ -25,6 +25,7 @@
 </div>
 
 <main id="hud" hidden>
+  <video id="cam" class="cam" playsinline muted autoplay></video>
 
   <!-- Ust: pusula seridi -->
   <div class="strip-wrap">
@@ -81,6 +82,7 @@
 
   <!-- Kontroller -->
   <div class="ctrl">
+    <button class="btn btn-sm" id="b-cam">KAMERA</button>
     <button class="btn btn-sm" id="b-mark">HEDEF KOY</button>
     <button class="btn btn-sm" id="b-clear">TEMIZLE</button>
     <button class="btn btn-sm" id="b-zoom">MENZIL</button>
@@ -109,6 +111,6 @@
     }, 3000);
   })();
 </script>
-<script type="module" src="src/app.js?v=2"></script>
+<script type="module" src="src/app.js?v=3"></script>
 </body>
 </html>
