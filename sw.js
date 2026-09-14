@@ -1,17 +1,20 @@
 // Pilot HUD - Service Worker
 // ASCII-only Turkce aciklamalar, nullish coalescing operatoru yok
 
-var CACHE_NAME = 'pilot-shell-v5';
+var CACHE_NAME = 'pilot-shell-v6';
 
 var SHELL_FILES = [
   './',
   'index.html',
   'style.css',
+  'src/aim.js',
   'src/app.js',
   'src/basemap.js',
   'src/camera.js',
   'src/geo.js',
+  'src/geoaim.js',
   'src/minimap.js',
+  'src/screenproj.js',
   'src/sensors.js',
   'vendor/maplibre-gl.js',
   'vendor/maplibre-gl.css',

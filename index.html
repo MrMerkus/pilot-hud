@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <title>PILOT HUD</title>
 <link rel="stylesheet" href="vendor/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=5">
+<link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -43,6 +43,9 @@
     <span class="r-line r-r"></span>
     <span class="r-dot"></span>
   </div>
+
+  <div id="wp-mark" class="wp-mark" hidden><div class="wp-diamond"></div><div class="wp-label" id="wp-label">--- m</div></div>
+  <div id="wp-edge" class="wp-edge" hidden><div class="wp-arrow"></div><div class="wp-edge-label" id="wp-edge-label">---</div></div>
 
   <!-- Sag ust: minimap -->
   <div class="map-wrap">
@@ -97,6 +100,6 @@
 </script>
 <script src="vendor/pmtiles.js"></script>
 <script src="vendor/maplibre-gl.js"></script>
-<script type="module" src="src/app.js?v=5"></script>
+<script type="module" src="src/app.js?v=6"></script>
 </body>
 </html>

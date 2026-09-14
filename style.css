@@ -243,6 +243,8 @@ html, body {
   top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
   right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
   z-index: 2;
+  cursor: pointer;
+  touch-action: none;
 }
 #basemap, .basemap {
   position: absolute;
@@ -322,6 +324,83 @@ canvas#map, #map, .map {
   opacity: .75;
 }
 
+/* ---------- Ekran ustu hedef isareti (AR Waypoint) ---------- */
+.wp-mark,
+.wp-edge {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.wp-diamond {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: calc(22px * var(--wp-scale, 1));
+  height: calc(22px * var(--wp-scale, 1));
+  border: 2px solid var(--am);
+  transform: translate(-50%, -50%) rotate(45deg);
+  box-shadow: 0 0 8px rgba(255, 160, 43, 0.4);
+  animation: wp-pulse 2s ease-in-out infinite;
+}
+
+@keyframes wp-pulse {
+  0%, 100% {
+    opacity: 0.85;
+    box-shadow: 0 0 6px rgba(255, 160, 43, 0.35);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 12px rgba(255, 160, 43, 0.65);
+  }
+}
+
+.wp-label {
+  position: absolute;
+  left: 0;
+  top: calc(16px * var(--wp-scale, 1) + 4px);
+  transform: translateX(-50%);
+  color: var(--am);
+  font-family: var(--mono);
+  font-size: clamp(9px, 1.8vh, 11px);
+  letter-spacing: .2em;
+  white-space: nowrap;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
+  text-align: center;
+}
+
+.wp-arrow {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 0;
+  height: 0;
+  border-top: 7px solid transparent;
+  border-bottom: 7px solid transparent;
+  border-left: 12px solid var(--am);
+  margin-top: -7px;
+  margin-left: -6px;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.9));
+}
+
+.wp-edge-label {
+  position: absolute;
+  left: 0;
+  top: 14px;
+  transform: translateX(-50%);
+  color: var(--am);
+  font-family: var(--mono);
+  font-size: clamp(9px, 1.8vh, 11px);
+  letter-spacing: .18em;
+  white-space: nowrap;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
+  text-align: center;
+}
+
 /* ---------- Alt kontroller ---------- */
 .ctrl {
   position: absolute;
@@ -369,6 +448,8 @@ body.cam-on #hud,
 body.cam-on .spd,
 body.cam-on .gps-warn,
 body.cam-on .wp,
+body.cam-on .wp-mark,
+body.cam-on .wp-edge,
 body.cam-on .ctrl .btn,
 body.cam-on .map-scale,
 body.cam-on .map-status,

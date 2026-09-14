@@ -238,6 +238,16 @@ export async function initBasemap(container, onStatus) {
   }
 }
 
+export function getBuildingFeatures() {
+  if (!map || !mapReady) return [];
+  try {
+    var feats = map.querySourceFeatures('istanbul', { sourceLayer: 'buildings' });
+    return feats || [];
+  } catch (e) {
+    return [];
+  }
+}
+
 export function updateBasemap(st) {
   if (!st || !st.pos) return;
   if (!map || !mapReady) {
@@ -247,7 +257,8 @@ export function updateBasemap(st) {
 
   var lat = st.pos.lat;
   var lon = st.pos.lon;
-  var hdg = (st.heading !== null && typeof st.heading === 'number') ? st.heading : 0;
+  var poseHdg = (st.pose && typeof st.pose.heading === 'number' && !isNaN(st.pose.heading)) ? st.pose.heading : null;
+  var hdg = poseHdg !== null ? poseHdg : ((st.heading !== null && typeof st.heading === 'number') ? st.heading : 0);
   var range = st.range || 100;
   var w = containerEl ? containerEl.clientWidth : 0;
 

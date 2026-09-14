@@ -39,7 +39,7 @@ function gpsErrText(e) {
    - Android: deviceorientationabsolute olayinda alpha, ama ters yonde sayiyor.
    - Mutlak yoksa goreli alpha (REL), mutlak gelince artik goreli yok sayilir.
    - Bazi cihazlarda hicbiri yok; o zaman GPS'in hareket yonune duseriz. */
-export async function startCompass(onHeading, onErr) {
+export async function startCompass(onHeading, onErr, onPose) {
   try {
     if (typeof DeviceOrientationEvent !== 'undefined' &&
         typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -66,6 +66,16 @@ export async function startCompass(onHeading, onErr) {
       h = norm(360 - ev.alpha); src = 'REL';
     }
     if (h !== null) onHeading(norm(h), src);
+
+    if (typeof onPose === 'function' && typeof ev.beta === 'number' && typeof ev.gamma === 'number') {
+      onPose({
+        alpha: ev.alpha,
+        beta: ev.beta,
+        gamma: ev.gamma,
+        absolute: Boolean(ev.absolute || typeof ev.webkitCompassHeading === 'number'),
+        webkitCompassHeading: ev.webkitCompassHeading
+      });
+    }
   };
 
   window.addEventListener('deviceorientationabsolute', handle, true);
