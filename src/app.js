@@ -40,17 +40,34 @@ const st = {
 
 let gotAbsPose = false;
 let fusionActive = false;
+let poseSeen = false;
 
 const $ = id => document.getElementById(id);
 const els = {
   gate: $('gate'), hud: $('hud'), err: $('gate-err'),
-  map: $('map'), strip: $('strip'),
+  map: $('map'), strip: $('strip'), diag: $('diag'),
   cam: $('cam'), bCam: $('b-cam'),
   wpMark: $('wp-mark'), wpLabel: $('wp-label'),
   wpEdge: $('wp-edge'), wpEdgeLabel: $('wp-edge-label'),
   bMark: $('b-mark'),
   mapWrap: document.querySelector('.map-wrap')
 };
+
+function getHeading() {
+  return (st.pose && st.pose.heading !== null) ? st.pose.heading : st.heading;
+}
+
+const updateTimes = [];
+function recordOrientEvent() {
+  updateTimes.push(performance.now());
+}
+function getOrientRate(now) {
+  const cutoff = now - 1000;
+  while (updateTimes.length > 0 && updateTimes[0] < cutoff) {
+    updateTimes.shift();
+  }
+  return updateTimes.length;
+}
 
 /* --- Ekran kip ve kilitleri --- */
 
@@ -121,7 +138,7 @@ function onFix(f) {
 
   // Pusula yoksa hareket yonunu kullan: dururken ise yaramaz ama
   // yururken makul bir yon verir.
-  if (!fusionActive && st.heading === null && f.gpsHdg != null && !isNaN(f.gpsHdg)) {
+  if (!fusionActive && !poseSeen && st.heading === null && f.gpsHdg != null && !isNaN(f.gpsHdg)) {
     st.heading = norm(f.gpsHdg);
     st.hsrc = 'GPS';
   }
@@ -134,57 +151,108 @@ function pushTrail(p) {
 
 function onHeading(h, src) {
   if (fusionActive) return;
+  if (st.sim) {
+    recordOrientEvent();
+    st.heading = h;
+    st.hsrc = 'SIM';
+    st.pose = { heading: h, pitch: 0 };
+    return;
+  }
+  if (poseSeen) return;
+
+  recordOrientEvent();
   // Yumusatma: ham manyetometre titriyor, HUD'da harita zipliyor.
   // Kisa yoldan aci ortalamasi aliyoruz ki 359 -> 1 gecisi geriye donmesin.
-  if (st.heading === null) { st.heading = h; }
-  else {
-    let d = ((h - st.heading + 540) % 360) - 180;
+  if (st.heading === null) {
+    st.heading = h;
+  } else {
+    const d = ((h - st.heading + 540) % 360) - 180;
     st.heading = norm(st.heading + d * 0.25);
   }
-  st.hsrc = src;
-
-  if (st.sim) {
-    st.pose = { heading: st.heading, pitch: 0 };
-  } else if (st.pose.heading === null) {
-    st.pose.heading = st.heading;
-  }
+  st.hsrc = (src === 'IOS' || src === 'MAG') ? 'ABS' : (src === 'REL' ? 'REL' : src);
+  st.pose.heading = st.heading;
 }
 
 function onPose(ev) {
   if (st.sim) return;
   if (fusionActive) return;
+  poseSeen = true;
+  recordOrientEvent();
+
   const angle = (screen.orientation && typeof screen.orientation.angle === 'number')
     ? screen.orientation.angle
     : (window.orientation || 0);
-  const raw = cameraPose(ev.alpha, ev.beta, ev.gamma, angle, null);
+  const ch = (typeof ev.webkitCompassHeading === 'number') ? ev.webkitCompassHeading : null;
+  const raw = cameraPose(ev.alpha, ev.beta, ev.gamma, angle, ch);
 
-  // Ham yunuslama (pitch) yumusatma
+  // Ham yunuslama (pitch) 0.25 alcak geciren filtre
   if (st.pose.pitch === null || isNaN(st.pose.pitch)) {
     st.pose.pitch = raw.pitch;
   } else {
     st.pose.pitch = st.pose.pitch + (raw.pitch - st.pose.pitch) * 0.25;
   }
 
-  // Yon (heading): mutlak olay veya iOS basligi varsa yumusatilmis ham baslik, yoksa st.heading
+  // Yon (heading): mutlak olaylari her zaman kabul et, goreli olaylari gotAbsPose false iken kabul et
   const isAbs = Boolean(ev.absolute || typeof ev.webkitCompassHeading === 'number');
   if (isAbs) {
     gotAbsPose = true;
+  }
+
+  if (isAbs || !gotAbsPose) {
     if (st.pose.heading === null) {
       st.pose.heading = raw.heading;
     } else {
       st.pose.heading = smoothAngle(st.pose.heading, raw.heading, 0.25);
     }
-  } else {
-    // Android ayni anda hem mutlak (deviceorientationabsolute) hem de goreceli
-    // (deviceorientation) olay firlatir. Mutlak yon bilgisi alindiysa goreceli olay
-    // st.pose.heading degerini ezmemelidir; aksi takdirde yatay kipte cihaz ust kenari
-    // ile kamera yonu arasindaki 90 derecelik farktan dolayi yon surekli iki deger
-    // arasinda gidip gelir. Bu nedenle mutlak veri varsa yalnizca yunuslama guncellenir,
-    // henuz mutlak veri yoksa st.heading yedek degerine donulur.
-    if (!gotAbsPose) {
-      st.pose.heading = st.heading;
-    }
+    st.heading = st.pose.heading;
+    st.hsrc = gotAbsPose ? 'ABS' : 'REL';
   }
+}
+
+/* --- Teshis Satiri --- */
+
+let lastDiagUpdate = 0;
+function updateDiag(now) {
+  if (now - lastDiagUpdate < 200) return;
+  lastDiagUpdate = now;
+  const diagEl = els.diag || $('diag');
+  if (!diagEl) return;
+
+  const src = st.hsrc ? st.hsrc : '---';
+  const camHdg = getHeading();
+  const hdgStr = (camHdg !== null && !isNaN(camHdg))
+    ? String(((Math.round(norm(camHdg)) % 360) + 360) % 360).padStart(3, '0')
+    : '---';
+
+  const pitchVal = (st.pose && typeof st.pose.pitch === 'number' && !isNaN(st.pose.pitch)) ? st.pose.pitch : 0;
+  const pSign = pitchVal >= 0 ? '+' : '-';
+  const pAbs = Math.min(99, Math.round(Math.abs(pitchVal)));
+  const pitchStr = pSign + String(pAbs).padStart(2, '0');
+
+  const rate = getOrientRate(now);
+  const text = src + ' ' + hdgStr + ' ' + pitchStr + ' ' + rate + 'Hz';
+  if (diagEl.textContent !== text) {
+    diagEl.textContent = text;
+  }
+}
+
+// Teshis satiri ac/kapa ve localStorage kaydi
+try {
+  const savedDiag = localStorage.getItem('pilotDiag');
+  if (savedDiag === 'off') {
+    const d = els.diag || $('diag');
+    if (d) d.classList.add('diag-off');
+  }
+} catch (e) {}
+
+const dEl = els.diag || $('diag');
+if (dEl) {
+  dEl.addEventListener('click', () => {
+    const isOff = dEl.classList.toggle('diag-off');
+    try {
+      localStorage.setItem('pilotDiag', isOff ? 'off' : 'on');
+    } catch (e) {}
+  });
 }
 
 /* --- Ekran --- */
@@ -206,7 +274,7 @@ function render() {
     st.pose.heading = st.heading;
   }
 
-  const camHdg = (st.pose && st.pose.heading !== null) ? st.pose.heading : st.heading;
+  const camHdg = getHeading();
 
   // Hedef paneli
   const box = $('wp-box');
@@ -226,7 +294,7 @@ function render() {
   // Ekran ustu hedef nisan kutusu ve kenar oku
   if (st.waypoint && st.pos) {
     const pose = {
-      heading: (st.pose && st.pose.heading !== null) ? st.pose.heading : (st.heading !== null ? st.heading : 0),
+      heading: camHdg !== null ? camHdg : 0,
       pitch: (st.pose && typeof st.pose.pitch === 'number') ? st.pose.pitch : 0
     };
     const p = projectTarget(st.pos, st.waypoint, pose, {
@@ -270,6 +338,7 @@ function render() {
   }
   drawMap(els.map, (camHdg !== null && camHdg !== st.heading) ? Object.assign({}, st, { heading: camHdg }) : st);
   drawStrip(els.strip, camHdg);
+  updateDiag(performance.now());
   requestAnimationFrame(render);
 }
 
@@ -292,8 +361,9 @@ $('b-mark').onclick = () => {
     return;
   }
   const features = getBuildingFeatures();
+  const camHdg = getHeading();
   const pose = {
-    heading: (st.pose && st.pose.heading !== null) ? st.pose.heading : (st.heading !== null ? st.heading : 0),
+    heading: camHdg !== null ? camHdg : 0,
     pitch: (st.pose && typeof st.pose.pitch === 'number') ? st.pose.pitch : 0
   };
   const res = pickTarget(st.pos, pose, features);
@@ -334,8 +404,9 @@ if (mapWrap) {
     const distPx = Math.hypot(dx, dy);
     if (distPx > radiusPx) return;
 
-    const camHdg = (st.pose && st.pose.heading !== null) ? st.pose.heading : (st.heading !== null ? st.heading : 0);
-    const worldBearing = norm(camHdg + Math.atan2(dx, -dy) * 180 / Math.PI);
+    const camHdg = getHeading();
+    const hdgVal = camHdg !== null ? camHdg : 0;
+    const worldBearing = norm(hdgVal + Math.atan2(dx, -dy) * 180 / Math.PI);
     const meters = distPx * st.range / radiusPx;
     st.waypoint = destination(st.pos, worldBearing, meters);
     st.wpMethod = 'map';
@@ -435,6 +506,7 @@ $('gate-connect').onclick = async () => {
       const s = new AbsoluteOrientationSensor({ frequency: 30, referenceFrame: 'device' });
       const onReading = () => {
         if (!s.quaternion) return;
+        recordOrientEvent();
         const p = poseFromQuaternion(s.quaternion);
         if (p.heading !== null) {
           if (st.pose.heading === null) {
@@ -482,6 +554,8 @@ $('gate-connect').onclick = async () => {
 $('gate-sim').onclick = () => {
   initDisplay();
   st.sim = true;
+  st.heading = 0;
+  st.hsrc = 'SIM';
   st.pose = { heading: 0, pitch: 0 };
   startSim(onFix, onHeading);
   enter();

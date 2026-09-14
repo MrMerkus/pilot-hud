@@ -25,7 +25,7 @@ export function drawMap(cv, st) {
 
   const cx = size / 2, cy = size / 2, R = size / 2 - 2;
   const ppm = R / st.range;              // piksel / metre
-  const hdg = st.heading !== null ? st.heading : 0;
+  const hdg = (st.pose && st.pose.heading !== null) ? st.pose.heading : (st.heading !== null ? st.heading : 0);
   const scale = size / 148;
 
   // Dis cerceve

@@ -160,6 +160,35 @@ html, body {
   50% { opacity: 0.25; }
 }
 
+/* ---------- Teshis satiri ---------- */
+.diag {
+  position: absolute;
+  top: calc(clamp(58px, 16.5vh, 80px) + env(safe-area-inset-top, 0px));
+  left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
+  font-size: clamp(8px, 1.8vmin, 10px);
+  color: var(--cy-dim);
+  letter-spacing: .15em;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
+  pointer-events: auto;
+  cursor: pointer;
+  z-index: 3;
+  white-space: nowrap;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.diag.diag-off {
+  font-size: 0;
+}
+
+.diag.diag-off::before {
+  content: "DIAG";
+  font-size: clamp(8px, 1.8vmin, 10px);
+  letter-spacing: .15em;
+  color: var(--cy-dim);
+  opacity: 0.45;
+}
+
 /* ---------- Hiz gostergesi (sade metin, kutusuz) ---------- */
 .spd {
   position: absolute;
@@ -447,6 +476,7 @@ body.cam-on .basemap {
 body.cam-on #hud,
 body.cam-on .spd,
 body.cam-on .gps-warn,
+body.cam-on .diag,
 body.cam-on .wp,
 body.cam-on .wp-mark,
 body.cam-on .wp-edge,
@@ -464,6 +494,12 @@ body.cam-on .attrib {
   /* Sol ust: GPS uyari */
   .gps-warn {
     top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
+    left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
+  }
+
+  /* Sol ust: Teshis satiri */
+  .diag {
+    top: calc(clamp(58px, 16.5vh, 80px) + env(safe-area-inset-top, 0px));
     left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
   }
 
@@ -517,6 +553,12 @@ body.cam-on .attrib {
   /* Sol ust: GPS uyari (seridin altinda) */
   .gps-warn {
     top: calc(clamp(48px, 8vh, 64px) + env(safe-area-inset-top, 0px));
+    left: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-left, 0px));
+  }
+
+  /* Sol ust: Teshis satiri (GPS uyarinin altinda) */
+  .diag {
+    top: calc(clamp(72px, 11vh, 92px) + env(safe-area-inset-top, 0px));
     left: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-left, 0px));
   }
   .map-wrap {
