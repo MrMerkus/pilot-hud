@@ -128,12 +128,17 @@ $('gate-connect').onclick = async () => {
   els.err.textContent = '';
   const fail = m => { els.err.textContent = m; };
 
-  startGPS(onFix, fail);
-  await startCompass(onHeading, m => {
-    // Pusula yoksa olumcul degil: GPS yonune duseriz, uyari yeter.
-    els.err.textContent = m + ' GPS hareket yonu kullanilacak.';
-  });
-  enter();
+  try {
+    await startCompass(onHeading, m => {
+      // Pusula yoksa olumcul degil: GPS yonune duseriz, uyari yeter.
+      els.err.textContent = m + ' GPS hareket yonu kullanilacak.';
+    });
+    startGPS(onFix, fail);
+  } catch (e) {
+    els.err.textContent = e.message || String(e);
+  } finally {
+    enter();
+  }
 };
 
 $('gate-sim').onclick = () => {

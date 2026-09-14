@@ -34,9 +34,10 @@ function gpsErrText(e) {
 }
 
 /* --- Pusula ---
-   Uc kaynak var ve hepsi ayni seyi soylemiyor:
+   Uc kaynak veya durum var:
    - iOS: webkitCompassHeading, zaten kuzeye gore, dogrudan kullanilir.
    - Android: deviceorientationabsolute olayinda alpha, ama ters yonde sayiyor.
+   - Mutlak yoksa goreli alpha (REL), mutlak gelince artik goreli yok sayilir.
    - Bazi cihazlarda hicbiri yok; o zaman GPS'in hareket yonune duseriz. */
 export async function startCompass(onHeading, onErr) {
   try {
@@ -50,12 +51,19 @@ export async function startCompass(onHeading, onErr) {
     return () => {};
   }
 
+  let gotAbs = false;
   const handle = ev => {
     let h = null, src = null;
     if (typeof ev.webkitCompassHeading === 'number') {
+      gotAbs = true;
       h = ev.webkitCompassHeading; src = 'IOS';
-    } else if (ev.absolute && typeof ev.alpha === 'number') {
-      h = norm(360 - ev.alpha); src = 'MAG';
+    } else if (ev.absolute) {
+      gotAbs = true;
+      if (typeof ev.alpha === 'number') {
+        h = norm(360 - ev.alpha); src = 'MAG';
+      }
+    } else if (!gotAbs && typeof ev.alpha === 'number') {
+      h = norm(360 - ev.alpha); src = 'REL';
     }
     if (h !== null) onHeading(norm(h), src);
   };
