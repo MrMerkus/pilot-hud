@@ -78,9 +78,9 @@ export async function startCompass(onHeading, onErr) {
 
 /* --- Simulasyon ---
    Masaustunde ve sensorsuz cihazda HUD'i gorebilmek icin.
-   Ankara civarinda dairesel bir yuruyus uretir. */
+   Taksim civarinda dairesel bir yuruyus uretir. */
 export function startSim(onFix, onHeading) {
-  const c = { lat: 39.9334, lon: 32.8597 };
+  const c = { lat: 41.0369, lon: 28.9850 };
   const rMeters = 120;
   let t = 0;
   const id = setInterval(() => {
@@ -90,7 +90,7 @@ export function startSim(onFix, onHeading) {
     onFix({
       lat: c.lat + dLat, lon: c.lon + dLon,
       acc: 4 + Math.sin(t * 3) * 2,
-      alt: 890 + Math.sin(t) * 5,
+      alt: 80 + Math.sin(t) * 5,
       spd: 1.4, gpsHdg: null, t: Date.now()
     });
     onHeading(norm(t * 180 / Math.PI + 90), 'SIM');

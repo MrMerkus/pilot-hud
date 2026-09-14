@@ -6,6 +6,20 @@ import { distance, bearing, cardinal, fmtDist, norm } from './geo.js';
 import { startGPS, startCompass, startSim } from './sensors.js';
 import { drawMap, drawStrip } from './minimap.js';
 import { startCamera, stopCamera } from './camera.js';
+import { initBasemap, updateBasemap } from './basemap.js';
+
+/* --- Servis calisani ve kalici depolama --- */
+try {
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+} catch (e) {}
+
+try {
+  if (navigator.storage && typeof navigator.storage.persist === 'function') {
+    navigator.storage.persist().catch(() => {});
+  }
+} catch (e) {}
 
 const RANGES = [50, 100, 250, 500, 1000];   // minimap menzil kademeleri, metre
 const TRAIL_MAX = 300;                       // izde tutulan nokta sayisi
@@ -151,6 +165,9 @@ function render() {
     box.classList.remove('on');
   }
 
+  if (st.pos) {
+    updateBasemap(st);
+  }
   drawMap(els.map, st);
   drawStrip(els.strip, st.heading);
   requestAnimationFrame(render);
@@ -213,9 +230,26 @@ els.bCam.onclick = async () => {
 
 /* --- Baslatma --- */
 
+let basemapStarted = false;
+
 function enter() {
   els.gate.hidden = true;
   els.hud.hidden = false;
+
+  if (!basemapStarted) {
+    basemapStarted = true;
+    const container = $('basemap');
+    const statusEl = $('map-status');
+    initBasemap(container, (status) => {
+      if (statusEl && statusEl.textContent !== status) {
+        statusEl.textContent = status;
+      }
+      if (status === 'HARITA HAZIR') {
+        document.body.classList.add('map-on');
+      }
+    });
+  }
+
   requestAnimationFrame(render);
 }
 

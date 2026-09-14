@@ -255,14 +255,37 @@ html, body {
   border-radius: 50%;
 }
 
-/* ---------- Minimap harita ---------- */
+/* ---------- Minimap harita ve altlik ---------- */
 .map-wrap {
   position: absolute;
   top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
   right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
   z-index: 2;
 }
-#map, .map {
+#basemap, .basemap {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: clamp(100px, 38vh, 260px);
+  height: clamp(100px, 38vh, 260px);
+  border-radius: 50%;
+  overflow: hidden;
+  z-index: 1;
+  background: #000;
+}
+.basemap .maplibregl-ctrl,
+.basemap .maplibregl-ctrl-attrib,
+.basemap .maplibregl-ctrl-logo {
+  display: none !important;
+}
+.basemap .maplibregl-canvas {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
+}
+canvas#map, #map, .map {
+  position: relative;
+  z-index: 2;
   width: clamp(100px, 38vh, 260px);
   height: clamp(100px, 38vh, 260px);
   display: block;
@@ -273,6 +296,14 @@ html, body {
   letter-spacing: .18em;
   color: var(--cy-dim);
   margin-top: clamp(2px, 0.5vh, 4px);
+}
+.map-status {
+  text-align: center;
+  font-size: clamp(7px, 1.5vh, 9px);
+  letter-spacing: .18em;
+  color: var(--cy-dim);
+  margin-top: clamp(1px, 0.3vh, 3px);
+  white-space: nowrap;
 }
 
 /* ---------- Hedef gostergesi ---------- */
@@ -339,6 +370,21 @@ html, body {
     to bottom, #4de2f00a 0px, #4de2f00a 1px, transparent 1px, transparent 3px);
 }
 
+/* ---------- Harita kaynak bilgisi ---------- */
+.attrib {
+  position: absolute;
+  bottom: calc(1px + env(safe-area-inset-bottom, 0px));
+  left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
+  font-size: clamp(7px, 1.2vh, 9px);
+  line-height: 1;
+  letter-spacing: .02em;
+  color: var(--cy-dim);
+  opacity: 0.45;
+  pointer-events: none;
+  white-space: nowrap;
+  z-index: 2;
+}
+
 /* ---------- Kamera modu acik ---------- */
 body.cam-on .cam,
 body.cam-on #cam {
@@ -347,11 +393,16 @@ body.cam-on #cam {
 body.cam-on .panel {
   background: rgba(0, 0, 0, 0.45);
 }
+body.cam-on .basemap {
+  opacity: 0.85;
+}
 body.cam-on #hud,
 body.cam-on .panel,
 body.cam-on .wp,
 body.cam-on .ctrl .btn,
-body.cam-on .map-scale {
+body.cam-on .map-scale,
+body.cam-on .map-status,
+body.cam-on .attrib {
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
 }
 body.cam-on .scan {
@@ -383,6 +434,7 @@ body.cam-on .scan {
     top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
     right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
   }
+  #basemap, .basemap,
   #map, .map {
     width: clamp(100px, 38vh, 260px);
     height: clamp(100px, 38vh, 260px);
@@ -436,6 +488,7 @@ body.cam-on .scan {
     top: calc(clamp(48px, 8vh, 64px) + env(safe-area-inset-top, 0px));
     right: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-right, 0px));
   }
+  #basemap, .basemap,
   #map, .map {
     width: clamp(110px, 32vw, 150px);
     height: clamp(110px, 32vw, 150px);
@@ -453,6 +506,10 @@ body.cam-on .scan {
     width: clamp(100px, 30vw, 135px);
     max-height: none;
     text-align: right;
+  }
+
+  .attrib {
+    left: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-left, 0px));
   }
 
   .wp {
