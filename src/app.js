@@ -2,7 +2,7 @@
    ekrani sabit hizda tazeler. Cizim ve veri ayri tutuluyor:
    sensor olaylari sadece durumu gunceller, ciziME karar veren tek yer render(). */
 
-import { distance, bearing, cardinal, fmtDist, norm } from './geo.js';
+import { distance, bearing, fmtDist, norm } from './geo.js';
 import { startGPS, startCompass, startSim } from './sensors.js';
 import { drawMap, drawStrip } from './minimap.js';
 import { startCamera, stopCamera } from './camera.js';
@@ -133,21 +133,14 @@ function onHeading(h, src) {
 /* --- Ekran --- */
 
 function render() {
-  const t = (id, v) => { const e = $(id); if (e.textContent !== v) e.textContent = v; };
+  const t = (id, v) => { const e = $(id); if (e && e.textContent !== v) e.textContent = v; };
 
-  t('v-fix', st.sim ? 'SIM' : (st.fix ? 'KILIT' : 'ARANIYOR'));
-  $('v-fix').style.color = st.fix || st.sim ? 'var(--ok)' : 'var(--am)';
+  const gpsWarn = $('gps-warn');
+  if (gpsWarn) {
+    gpsWarn.hidden = (st.fix || st.sim) ? true : false;
+  }
 
-  t('v-hdg', st.heading == null ? '---' :
-      String(Math.round(st.heading)).padStart(3, '0') + '° ' + cardinal(st.heading));
-  t('v-src', st.hsrc);
-
-  t('v-lat', st.pos ? st.pos.lat.toFixed(5) : '--.-----');
-  t('v-lon', st.pos ? st.pos.lon.toFixed(5) : '--.-----');
-  t('v-acc', st.acc == null ? '--- m' : Math.round(st.acc) + ' m');
-  t('v-alt', st.alt == null ? '--- m' : Math.round(st.alt) + ' m');
   t('v-spd', (st.spd * 3.6).toFixed(1));
-  t('v-trip', fmtDist(st.trip));
   t('v-scale', st.range + ' m');
 
   // Hedef paneli
@@ -241,8 +234,11 @@ function enter() {
     const container = $('basemap');
     const statusEl = $('map-status');
     initBasemap(container, (status) => {
-      if (statusEl && statusEl.textContent !== status) {
-        statusEl.textContent = status;
+      if (statusEl) {
+        if (statusEl.textContent !== status) {
+          statusEl.textContent = status;
+        }
+        statusEl.hidden = (status === 'HARITA HAZIR');
       }
       if (status === 'HARITA HAZIR') {
         document.body.classList.add('map-on');

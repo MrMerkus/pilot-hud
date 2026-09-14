@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#000000">
 <title>PILOT HUD</title>
 <link rel="stylesheet" href="vendor/maplibre-gl.css">
-<link rel="stylesheet" href="style.css?v=4">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -34,19 +34,14 @@
     <div class="strip-mark"></div>
   </div>
 
+  <!-- Sol ust: GPS uyari -->
+  <div id="gps-warn" class="gps-warn" hidden>GPS ARANIYOR</div>
+
   <!-- Orta: nisangah -->
   <div class="reticle">
     <span class="r-line r-l"></span>
     <span class="r-line r-r"></span>
     <span class="r-dot"></span>
-  </div>
-
-  <!-- Sol ust: durum -->
-  <div class="panel p-tl">
-    <div class="p-head">SYS</div>
-    <div class="row"><span class="k">GPS</span><span class="v" id="v-fix">---</span></div>
-    <div class="row"><span class="k">HDG</span><span class="v" id="v-hdg">---</span></div>
-    <div class="row"><span class="k">SRC</span><span class="v" id="v-src">---</span></div>
   </div>
 
   <!-- Sag ust: minimap -->
@@ -57,22 +52,8 @@
     <div id="map-status" class="map-status"></div>
   </div>
 
-  <!-- Sol alt: konum -->
-  <div class="panel p-bl">
-    <div class="p-head">POS</div>
-    <div class="row"><span class="k">LAT</span><span class="v" id="v-lat">--.-----</span></div>
-    <div class="row"><span class="k">LON</span><span class="v" id="v-lon">--.-----</span></div>
-    <div class="row"><span class="k">ACC</span><span class="v" id="v-acc">--- m</span></div>
-  </div>
-
-  <!-- Sag alt: hareket -->
-  <div class="panel p-br">
-    <div class="p-head">VEL</div>
-    <div class="big" id="v-spd">0.0</div>
-    <div class="unit">km/h</div>
-    <div class="row"><span class="k">ALT</span><span class="v" id="v-alt">--- m</span></div>
-    <div class="row"><span class="k">DST</span><span class="v" id="v-trip">0 m</span></div>
-  </div>
+  <!-- Sag alt: hiz gostergesi -->
+  <div class="spd"><span class="big" id="v-spd">0.0</span><span class="unit">km/h</span></div>
 
   <!-- Alt orta: hedef -->
   <div class="wp" id="wp-box">
@@ -92,8 +73,6 @@
   </div>
 
   <div class="attrib">&copy; OpenStreetMap contributors &middot; Protomaps</div>
-
-  <div class="scan"></div>
 </main>
 
 <script>
@@ -118,6 +97,6 @@
 </script>
 <script src="vendor/pmtiles.js"></script>
 <script src="vendor/maplibre-gl.js"></script>
-<script type="module" src="src/app.js?v=4"></script>
+<script type="module" src="src/app.js?v=5"></script>
 </body>
 </html>

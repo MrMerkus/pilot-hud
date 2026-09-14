@@ -1,7 +1,7 @@
 // Pilot HUD - Service Worker
 // ASCII-only Turkce aciklamalar, nullish coalescing operatoru yok
 
-var CACHE_NAME = 'pilot-shell-v4';
+var CACHE_NAME = 'pilot-shell-v5';
 
 var SHELL_FILES = [
   './',

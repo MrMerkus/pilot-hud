@@ -140,67 +140,49 @@ html, body {
   pointer-events: none;
 }
 
-/* ---------- Genel panel stili ---------- */
-.panel {
+/* ---------- GPS uyari gostergesi ---------- */
+.gps-warn {
   position: absolute;
-  padding: clamp(6px, 1.2vh, 10px) clamp(8px, 1.5vw, 12px);
-  border: 1px solid var(--cy-faint);
-  background: #00000055;
-  min-width: clamp(110px, 15vw, 150px);
-  z-index: 2;
-}
-/* Kose parantezleri: Cooper HUD kosegen cerceve dili */
-.panel::before, .panel::after {
-  content: "";
-  position: absolute;
-  width: clamp(7px, 1.2vmin, 9px);
-  height: clamp(7px, 1.2vmin, 9px);
-  border: 1px solid var(--cy);
-  border-width: 0;
-}
-.panel::before { top: -1px; left: -1px; border-top-width: 1px; border-left-width: 1px; }
-.panel::after  { bottom: -1px; right: -1px; border-bottom-width: 1px; border-right-width: 1px; }
-
-/* Varsayilan panel konumlari */
-.p-tl {
   top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
   left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
+  font-size: clamp(9px, 1.8vh, 11px);
+  color: var(--am);
+  letter-spacing: .24em;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
+  pointer-events: none;
+  z-index: 2;
+  white-space: nowrap;
+  animation: gps-blink 1.6s ease-in-out infinite;
 }
-.p-bl {
-  bottom: calc(clamp(8px, 2.5vh, 16px) + env(safe-area-inset-bottom, 0px));
-  left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
+
+@keyframes gps-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.25; }
 }
-.p-br {
+
+/* ---------- Hiz gostergesi (sade metin, kutusuz) ---------- */
+.spd {
+  position: absolute;
   bottom: calc(clamp(8px, 2.5vh, 16px) + env(safe-area-inset-bottom, 0px));
   right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
   text-align: right;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 2;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
 }
-
-.p-head {
-  font-size: clamp(8px, 1.8vh, 10px);
-  letter-spacing: .26em;
-  color: var(--cy-dim);
-  margin-bottom: clamp(3px, 0.8vh, 6px);
-}
-.row {
-  display: flex;
-  justify-content: space-between;
-  gap: clamp(8px, 1.5vw, 14px);
-  font-size: clamp(10px, 2.2vh, 12px);
-  line-height: 1.45;
-}
-.k { color: var(--cy-dim); }
-.v { font-variant-numeric: tabular-nums; }
+.spd .big,
 .big {
   font-size: clamp(20px, 5vh, 32px);
   line-height: 1;
   font-variant-numeric: tabular-nums;
 }
+.spd .unit,
 .unit {
   font-size: clamp(8px, 1.8vh, 10px);
   letter-spacing: .2em;
   color: var(--cy-dim);
-  margin-bottom: clamp(3px, 0.8vh, 6px);
+  margin-left: 4px;
 }
 
 /* ---------- Pusula seridi ---------- */
@@ -360,16 +342,6 @@ canvas#map, #map, .map {
   white-space: nowrap;
 }
 
-/* ---------- Tarama cizgileri ---------- */
-.scan {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  pointer-events: none;
-  z-index: 4;
-  background: repeating-linear-gradient(
-    to bottom, #4de2f00a 0px, #4de2f00a 1px, transparent 1px, transparent 3px);
-}
-
 /* ---------- Harita kaynak bilgisi ---------- */
 .attrib {
   position: absolute;
@@ -390,14 +362,12 @@ body.cam-on .cam,
 body.cam-on #cam {
   display: block;
 }
-body.cam-on .panel {
-  background: rgba(0, 0, 0, 0.45);
-}
 body.cam-on .basemap {
   opacity: 0.85;
 }
 body.cam-on #hud,
-body.cam-on .panel,
+body.cam-on .spd,
+body.cam-on .gps-warn,
 body.cam-on .wp,
 body.cam-on .ctrl .btn,
 body.cam-on .map-scale,
@@ -405,31 +375,18 @@ body.cam-on .map-status,
 body.cam-on .attrib {
   text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 1px 2px #000;
 }
-body.cam-on .scan {
-  opacity: 0.35;
-}
 
 /* ==========================================================================
    YATAY YERLESIM (LANDSCAPE) - Birincil kask gorunumu
    ========================================================================== */
 @media (orientation: landscape) {
-  /* Sol sutun: SYS ustte, POS altta - carpmayi engelleyen vh sinirlari */
-  .p-tl {
+  /* Sol ust: GPS uyari */
+  .gps-warn {
     top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
     left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
-    width: clamp(116px, 17vw, 150px);
-    max-height: 38vh;
-    overflow: hidden;
-  }
-  .p-bl {
-    bottom: calc(clamp(8px, 2.5vh, 16px) + env(safe-area-inset-bottom, 0px));
-    left: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-left, 0px));
-    width: clamp(116px, 17vw, 150px);
-    max-height: 40vh;
-    overflow: hidden;
   }
 
-  /* Sag taraf: Minimap sag ustte, VEL sag altta - carpmayi engelleyen vh sinirlari */
+  /* Sag taraf: Minimap sag ustte */
   .map-wrap {
     top: calc(clamp(38px, 11.5vh, 56px) + env(safe-area-inset-top, 0px));
     right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
@@ -439,13 +396,11 @@ body.cam-on .scan {
     width: clamp(100px, 38vh, 260px);
     height: clamp(100px, 38vh, 260px);
   }
-  .p-br {
+
+  /* Sag alt: Hiz gostergesi */
+  .spd {
     bottom: calc(clamp(8px, 2.5vh, 16px) + env(safe-area-inset-bottom, 0px));
     right: calc(clamp(10px, 2.5vw, 24px) + env(safe-area-inset-right, 0px));
-    width: clamp(108px, 16vw, 150px);
-    max-height: 42vh;
-    overflow: hidden;
-    text-align: right;
   }
 
   /* Alt orta: Hedef paneli ve kontroller */
@@ -478,11 +433,10 @@ body.cam-on .scan {
     height: clamp(40px, 7vh, 52px);
   }
 
-  .p-tl {
+  /* Sol ust: GPS uyari (seridin altinda) */
+  .gps-warn {
     top: calc(clamp(48px, 8vh, 64px) + env(safe-area-inset-top, 0px));
     left: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-left, 0px));
-    width: clamp(110px, 34vw, 145px);
-    max-height: none;
   }
   .map-wrap {
     top: calc(clamp(48px, 8vh, 64px) + env(safe-area-inset-top, 0px));
@@ -494,18 +448,10 @@ body.cam-on .scan {
     height: clamp(110px, 32vw, 150px);
   }
 
-  .p-bl {
-    bottom: calc(clamp(116px, 17vh, 130px) + env(safe-area-inset-bottom, 0px));
-    left: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-left, 0px));
-    width: clamp(110px, 34vw, 145px);
-    max-height: none;
-  }
-  .p-br {
+  /* Sag alt: Hiz gostergesi (kontrollerin ustunde, cakismayi onler) */
+  .spd {
     bottom: calc(clamp(116px, 17vh, 130px) + env(safe-area-inset-bottom, 0px));
     right: calc(clamp(8px, 2.5vw, 14px) + env(safe-area-inset-right, 0px));
-    width: clamp(100px, 30vw, 135px);
-    max-height: none;
-    text-align: right;
   }
 
   .attrib {
