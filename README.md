@@ -3,6 +3,9 @@
 Titanfall 2'deki Jack Cooper'in kask HUD'inin gercek hayatta calisan hali.
 Uc asamali planin **Asama 1**'i: donanim yok, sadece yazilim.
 
+## Direkt çalıştırmak isterseniz
+Sitenin linki: https://mrmerkus.github.io/pilot-hud/
+
 ## Calistir
 
 ```bash
